@@ -1,0 +1,68 @@
+<div class="modal-header">
+    <h4 class="modal-title">Alarms</h4>
+    <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+    <div class="table-responsive">
+        <form [formGroup]="alarmForm">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Message</th>
+                        <th>Parameter</th>
+                        <th>Rel</th>
+                        <th>Value</th>
+                        <th>Delay</th>
+                        <th>Active</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let alarm of alarms">
+                        <td>{{alarm.message}}</td>
+                        <td>{{alarm.parameterName | decamel}}</td>
+                        <td>{{getRelationValue(alarm.relation)}}</td>
+                        <td>{{alarm.value}}</td>
+                        <td>{{alarm.delay}}</td>
+                        <td>{{alarm.flagRaised}}</td>
+                        <td><a [routerLink]="[]" (click)="deleteAlarm(alarm.id)" class="text-danger"><fa-icon [icon]="iconDelete"></fa-icon></a></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="hidden" name="id" formControlName="id">
+                            <input type="text" name="message" formControlName="message" class="form-control">
+                        </td>
+                        <td>
+                            <select name="parameterName" formControlName="parameterName" class="form-select">
+                                <option *ngFor="let param of deviceType.readableParameters"
+                                    value="{{param}}">{{param | decamel}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="relation" formControlName="relation" class="form-select">
+                                <option *ngFor="let key of getRelationKeys()"
+                                    value="{{key}}">{{getRelationValue(key)}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input style="width: 5em;" type="text" name="value" formControlName="value" class="form-control">
+                        </td>
+                        <td>
+                            <input style="width: 5em;" type="number" min="0" max="60" name="delay" formControlName="delay" class="form-control">
+                        </td>
+                        <td>
+
+                        </td>
+                        <td>
+                            <a [routerLink]="[]" (click)="addAlarm()"><fa-icon [icon]="iconAdd"></fa-icon></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-warning" (click)="clone()">Clone to all</button>
+    <button type="button" class="btn btn-danger" (click)="close()">Close</button>
+</div>

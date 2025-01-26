@@ -1,0 +1,47 @@
+<div class="row">
+    <div class="col-9 col-sm-6 col-md-6 col-lg-4 col-xl-4">
+        <select class="form-select" #installation (change)="selectInstallation(installation.value)">
+            <option *ngFor="let installation of installations; index as i"
+                title="{{installation.description}}" value="{{i}}" [selected]="installation.id == selectedInstallationId()">
+                {{installation.name}}
+            </option>
+        </select>
+    </div>
+</div>
+<div class="row mt-2">
+    <div class="col-12 col-md-9">
+        <div class="map-container">
+            <div class="map-frame" style="height: 450px;">
+              <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3 overflow-auto" style="max-height: 450px">
+        <div *ngIf="selectedLocation">
+            <h3><a routerLink="{{selectedInstallationId()}}/locations/{{selectedLocation.id}}">{{selectedLocation.name}}</a></h3>
+            <p>{{selectedLocation.description}}</p>
+            <div *ngFor="let tableView of tableViews; index as iTableView">
+                <div *ngIf="getLocationRow(iTableView, selectedLocation.id)">
+                    <table>
+                        <tr *ngFor="let col of tableView.columns; index as iCol">
+                            <td><span *ngIf="col.type == 'DATA'" class="fw-bold" title="{{col.description}}">{{col.title}}:&nbsp;&nbsp;</span></td>
+                            <td *ngIf="col.type == 'DATA'" class="{{getClass(iTableView, iCol)}}">{{formatValue(getLocationRow(iTableView, selectedLocation.id).cells[iCol].value, iTableView, iCol)}}</td>
+                            <td *ngIf="col.type == 'COMMAND'" class="text-center">
+                                <button class="btn btn-warning btn-sm w-100" title="{{col.description}}" (click)="sendCommand(iTableView, selectedLocation.id, iCol)">{{col.title}}</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <p></p>
+            <div *ngIf="locationAlarms(selectedLocation.id).length > 0">
+                <p class="fw-bold">Alarms</p>
+                <ul>
+                    <li *ngFor="let alarm of locationAlarms(selectedLocation.id)">
+                        {{alarm.alarmText}} ({{alarm.triggeredAt * 1000 | date : 'medium'}})
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

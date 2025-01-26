@@ -1,0 +1,76 @@
+<h1>{{location.name}}&nbsp;<a [routerLink]="[]" title="Edit location" (click)="openLocationEditor()"><fa-icon [icon]="iconEdit" size="xs"></fa-icon></a></h1>
+<p>{{location.description}}</p>
+<div class="row mb-4">
+    <div class="col-sm-10 col-md-8 col-lg-5 mb-4">
+        <p>
+            <a href="https://www.openstreetmap.org/?mlat={{location.latitude}}&mlon={{location.longitude}}&zoom=12&layers=M" rel="external">
+                OpenStreetMap
+            </a> |
+            <a href="https://maps.google.com/maps?ll={{location.latitude}},{{location.longitude}}&q={{location.latitude}},{{location.longitude}}&hl=en&t=m&z=12" rel="external">
+                Google Maps
+            </a>
+        </p>
+        <div class="map-container" style="height: 300px;">
+            <div class="map-frame">
+              <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7 mb-8">
+        <div class="row">
+            <div class="col-sm mb-4 align-content-end">
+                <div>
+                    <p><strong>Device:</strong></p>
+                    <select class="form-select" id="device" [formControl]="graphDataForm.get('deviceId')"
+                        (change)="selectDevice(graphDataForm.get('deviceId').value)">
+                        <option *ngFor="let dev of devices" value="{{dev.id}}">
+                            {{dev.model}} (#{{dev.id}})
+                        </option>
+                    </select>
+                </div>
+                <div class="my-3">
+                    <a [routerLink]="[]" title="Edit device parameters" (click)="openDeviceEditor()"><fa-icon [icon]="iconEdit" size="2x"></fa-icon></a>&nbsp;
+                    <a [routerLink]="[]" title="Edit alarms" (click)="openAlarmEditor()"><fa-icon [icon]="iconAlarm" size="2x"></fa-icon></a>&nbsp;
+                    <a [routerLink]="[]" title="Send command" (click)="openCommandSender()"><fa-icon [icon]="iconSend" size="2x"></fa-icon></a>
+                </div>
+            </div>
+            <div class="col-sm">
+                <p><strong>Device details: <a [routerLink]="[]"  title="Sync" (click)="syncDetails()"><fa-icon [icon]="iconRefresh"></fa-icon></a></strong></p>
+                <div class="overflow-auto" style="max-height: 300px">
+                    <div *ngFor="let key of objectKeys(selectedDevice)">
+                        <p class="m-0"><span class="fw-bold">{{key | decamel}}:</span> {{selectedDevice[key]}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<h2>
+    Historical data
+</h2>
+<div class="row">
+    <div class="col-md-4 col-lg-3 col-xl-3">
+        <select [formControl]="graphDataForm.get('deviceId')" class="form-select"
+            (change)="selectDevice(graphDataForm.get('deviceId').value)">
+            <option *ngFor="let dev of devices" value="{{dev.id}}">
+                {{dev.model}} (#{{dev.id}})
+            </option>
+        </select>
+    </div>
+    <div class="col-md-5 col-lg-4 col-xl-4">
+        <select [formControl]="graphDataForm.get('property')" class="form-select">
+            <option *ngFor="let method of getDeviceType(getDevice(graphDataForm.get('deviceId').value).className).readableParameters" value="{{method}}">
+                {{method | decamel}}
+            </option>
+        </select>
+    </div>
+    <div class="col-md-3 col-lg-2 col-xl-2">
+        <button class="btn btn-primary" (click)="addData()">
+            Show data
+        </button>
+    </div>
+</div>
+<div class="my-1">
+    <plotly-plot [data]="graph.data" [layout]="graph.layout" [config]="graph.config">
+    </plotly-plot>
+</div>

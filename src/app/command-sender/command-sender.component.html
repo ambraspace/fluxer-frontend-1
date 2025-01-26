@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <h4 class="modal-title">Send command</h4>
+    <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+    <div class="my-2">
+        <label for="method" class="form-label">Command:</label>
+        <select class="form-select" id="method" [formControl]="commandForm.get('methodName')">
+            <option *ngFor="let m of deviceType.commandProducers" value="{{m}}">
+                {{m | decamel}}
+            </option>
+        </select>
+    </div>
+    <div class="my-2">
+        <label for="args" class="form-label">Arguments:</label>
+        <input class="form-control" type="text" id="args" [formControl]="commandForm.get('arguments')">
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="sendCommand()">Send</button>
+    <button type="button" class="btn btn-danger" (click)="close()">Close</button>
+</div>

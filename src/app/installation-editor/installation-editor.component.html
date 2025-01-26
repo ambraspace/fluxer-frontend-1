@@ -1,0 +1,13 @@
+<div class="row">
+    <div class="col-4">
+        <div class="my-2">
+            <label for="name"  class="form-label">Name:</label>
+            <input type="text" class="form-control" id="name" [(ngModel)]="installation.name">
+        </div>
+        <div class="my-2">
+            <label for="description" class="form-label">Description:</label>
+            <input type="text" class="form-control" id="description" [(ngModel)]="installation.description">
+        </div> 
+        <button type="submit" class="btn btn-primary" (click)="saveInstallation()">Save</button>
+    </div>
+</div>

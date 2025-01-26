@@ -1,0 +1,50 @@
+<div class="row">
+    <div class="col-9 col-sm-6 col-md-6 col-lg-4 col-xl-4">
+        <select class="form-select" #installation (change)="selectInstallation(installation.value)">
+            <option *ngFor="let installation of installations; index as i"
+                title="{{installation.description}}" value="{{i}}" [selected]="installation.id == selectedInstallationId()">
+                {{installation.name}}
+            </option>
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div *ngFor="let table of tableViews; index as iTable">
+            <h4>{{table.name}}</h4>
+            <p>{{table.description}}</p>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Location</th>
+                            <th *ngFor="let col of table.columns" title="{{col.description}}" class="text-center">{{col.title}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let row of table.rows, index as iRow">
+                            <td title="{{getLocation(row.locationId)['description']}}">
+                                <span class="fst-italic">
+                                    <a routerLink="{{selectedInstallationId()}}/locations/{{row.locationId}}">{{getLocation(row.locationId)['name']}}</a>
+                                </span>
+                            </td>
+                            <td *ngFor="let cell of row.cells, index as iColumn" class="{{getClass(iTable, iColumn)}} align-middle">
+                                <span *ngIf="tableViews[iTable].columns[iColumn].type=='DATA'">
+                                    {{formatValue(cell.value, iTable, iColumn)}}
+                                </span>
+                                <span *ngIf="tableViews[iTable].columns[iColumn].type=='COMMAND'">
+                                    <button
+                                        title="{{tableViews[iTable].columns[iColumn].description}}"
+                                        (click)="sendCommand(iTable, iRow, iColumn)"
+                                        class="btn btn-warning btn-sm">
+                                        {{tableViews[iTable].columns[iColumn].title}}
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

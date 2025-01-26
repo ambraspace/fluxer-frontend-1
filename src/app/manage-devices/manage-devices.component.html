@@ -1,0 +1,54 @@
+<h2>Devices</h2>
+<div class="row">
+    <div class="col-9 col-sm-6 col-md-6 col-lg-4 col-xl-4">
+        Choose installation: 
+        <select class="form-select" #selectedInstallation (change)="changeInstallation(selectedInstallation.value)">
+            <option *ngFor="let installation of installations" value="{{installation.id}}"
+                [selected]="installation.id==selectedInstallationId()">{{installation.name}}</option>
+        </select>
+    </div>
+</div>
+<div class="row p-3" *ngIf="installations && installations.length>0">
+    <div class="col border p-3">
+        <h4>Locations:</h4>
+        <p class="alert alert-info" *ngIf="!locations || locations.length==0">There are no locations. Please add one.</p>
+        <div class="row mb-1 border" *ngFor="let location of locations">
+            <div class="col">
+                <p class="m-0 p-0"><a [routerLink]="[]" (click)="selectLocation(location.id)">{{location.name}}</a></p>
+                <p class="small m-0 p-0">{{location.description}}</p>
+            </div>
+            <div class="col-1 p-1 text-center">
+                <a [routerLink]="[]" (click)="openEditLocation(location.id)"><fa-icon [icon]="iconEdit"></fa-icon></a><br>
+                <a [routerLink]="[]" (click)="deleteLocation(location.id)" class="text-danger"><fa-icon [icon]="iconDelete"></fa-icon></a>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="openAddLocation()">Add location</button>
+    </div>
+    <div class="col border p-3">
+        <h4>Devices:</h4>
+        <p class="alert alert-info" *ngIf="!selectedLocationId">Select location to display devices.</p>
+        <p class="alert alert-info" *ngIf="selectedLocationId && (!devices || devices.length==0)">There are no devices. Please add one.</p>
+        <div class="row mb-1 border" *ngFor="let device of devices">
+            <div class="col">
+                <p class="m-0 p-0"><a [routerLink]="[]" title="{{device.description}}"
+                    (click)="showDeviceDetails(device.id)">{{device.model}}</a> (#{{device.id}})</p>
+                <p class="small m-0 p-0">Connection ID: {{device.connectionId}} | Address: {{device.address}}</p>
+            </div>
+            <div class="col-1 p-1 text-center">
+                <a [routerLink]="[]" (click)="openDeviceEditor(device.id)"><fa-icon [icon]="iconEdit"></fa-icon></a><br>
+                <a [routerLink]="[]" (click)="deleteDevice(device.id)" class="text-danger"><fa-icon [icon]="iconDelete"></fa-icon></a>
+            </div>
+        </div>
+        <button *ngIf="selectedLocationId" type="button" class="btn btn-primary" (click)="openAddDevice()">Add device</button>
+    </div>
+    <div class="col border p-3">
+        <h4>Device details:</h4>
+        <p class="alert alert-info" *ngIf="!selectedDevice">Select device to show its details.</p>
+        <div *ngFor="let key of objectKeys(selectedDevice)">
+            <p class="m-0"><span class="fw-bold">{{key}}:</span> {{selectedDevice[key]}}</p>
+        </div>
+        <div class="mt-3 text-right" *ngIf="selectedDevice">
+            <button type="button" class="btn btn-primary" (click)="openAlarmEditor()">Alarm conditions</button>
+        </div>
+    </div>
+</div>

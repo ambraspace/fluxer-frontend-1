@@ -1,0 +1,27 @@
+<div class="container">
+      <ul ngbNav>
+            <li ngbNavItem *ngIf="!authenticated()">
+                  <a ngbNavLink routerLink="/">Home</a>
+            </li>
+            <li ngbNavItem *ngIf="authenticated()">
+                  <a ngbNavLink routerLink="/installations">Home</a>
+            </li>
+            <li ngbDropdown *ngIf="isAdmin()">
+                  <a ngbDropdownToggle class="nav-link" href (click)="false">Manage</a>
+                  <div ngbDropdownMenu>
+                        <button ngbDropdownItem routerLink="manage/installations">Installations</button>
+                        <button ngbDropdownItem routerLink="manage/users">Users</button>
+                        <button ngbDropdownItem routerLink="manage/devices">Devices</button>
+                        <button ngbDropdownItem routerLink="manage/tables">Tables</button>
+                        <button ngbDropdownItem routerLink="manage/triggers">Triggers</button>
+                  </div>
+            </li>
+            <li ngbNavItem *ngIf="!authenticated()">
+                  <a ngbNavLink routerLink="/login">Login</a>
+            </li>
+            <li ngbNavItem *ngIf="authenticated()">
+                  <a ngbNavLink (click)="logout()">Logout</a>
+            </li>
+      </ul>
+      <router-outlet></router-outlet>
+</div>

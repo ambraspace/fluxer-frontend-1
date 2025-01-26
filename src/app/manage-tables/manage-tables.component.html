@@ -1,0 +1,127 @@
+<h2>Tables</h2>
+<div class="row">
+    <div class="col-9 col-sm-6 col-md-6 col-lg-4 col-xl-4">
+        Choose installation: 
+        <select class="form-select" #selectedInstallation
+            (change)="changeInstallation(selectedInstallation.value)" [disabled]="editingTableIndex>-1">
+            <option *ngFor="let installation of installations" value="{{installation.id}}"
+                [selected]="installation.id==selectedInstallationId()">{{installation.name}}</option>
+        </select>
+    </div>
+</div>
+<div class="row p-3 row-cols-2" *ngIf="installations && installations.length>0">
+    <div class="col-3">
+        <p class="alert alert-info" *ngIf="!tableViews || tableViews.length==0">There are no tables. Please add one.</p>
+        <div class="row mb-1 border" *ngFor="let tv of tableViews; index as i">
+            <div class="col">
+                <p class="m-0 p-0"><a [routerLink]="[]" (click)="selectTableView(i)">{{tv.name}}</a></p>
+                <p class="small m-0 p-0">{{tv.description}}</p>
+            </div>
+            <div class="col-1 p-1 text-center">
+                <a [routerLink]="[]" (click)="editTable(tableModal, i)" *ngIf="editingTableIndex<0 || editingTableIndex==i"><fa-icon [icon]="iconEdit"></fa-icon></a><br>
+                <a [routerLink]="[]" class="text-danger" (click)="deleteTable(tv.id)" *ngIf="editingTableIndex<0 || editingTableIndex==i"><fa-icon [icon]="iconDelete"></fa-icon></a>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="addTable(tableModal)" *ngIf="editingTableIndex<0">Add table</button>
+        <button type="button" class="btn btn-primary" *ngIf="editingTableIndex>-1" (click)="saveTable()">Save table</button>
+    </div>
+    <div class="col-9 border p-3">
+        <div class="row" *ngIf="selectedTableView">
+            <div class="col">
+                <button type="button" class="btn btn-primary" (click)="addRow()">Add row</button>&nbsp;
+                <button type="button" class="btn btn-primary" (click)="addDataColumn()">Add data column</button>&nbsp;
+                <button type="button" class="btn btn-primary" (click)="addCommandColumn()">Add action column</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col table-responsive">
+                <form>
+                    <table class="table table-stripped table-sm" *ngIf="selectedTableView">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Location
+                                </th>
+                                <th *ngFor="let c of formColumns.controls; index as i">
+                                    <input type="hidden" [formControl]="formColumns.controls[i].get('type')"><br>
+                                    <input type="text" [formControl]="formColumns.controls[i].get('title')"
+                                        placeholder="title" (input)="modifyTable()"><br>
+                                    <input type="text" [formControl]="formColumns.controls[i].get('description')"
+                                        placeholder="description" (input)="modifyTable()"><br>
+                                    <select *ngIf="formColumns.controls[i].get('type').value == 'DATA'" [formControl]="formColumns.controls[i].get('alignment')" (change)="modifyTable()">
+                                        <option value="LEFT">LEFT</option>
+                                        <option value="CENTER">CENTER</option>
+                                        <option value="RIGHT">RIGHT</option>
+                                    </select><br>
+                                    <select *ngIf="formColumns.controls[i].get('type').value == 'DATA'" [formControl]="formColumns.controls[i].get('pipe')"
+                                        (change)="modifyTable(); formColumns.controls[i].get('pipeArg').setValue(getPipeArg(selectedPipe.value))" #selectedPipe>
+                                        <option value="">(pipe)</option>
+                                        <option *ngFor="let pk of getPipeKeys()" value="{{pk}}">
+                                            {{pk}}
+                                        </option>
+                                    </select>
+                                    <input *ngIf="formColumns.controls[i].get('type').value == 'DATA'" style="width: 6em;" type="text" [formControl]="formColumns.controls[i].get('pipeArg')"
+                                        placeholder="argument" (input)="modifyTable()"><br>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let r of formRows.controls; index as i">
+                                <td>
+                                    <select [formControl]="formRows.controls[i].get('locationId')"
+                                        (change)="changeLoc(i); modifyTable()">
+                                        <option value="0">(location)</option>
+                                        <option *ngFor="let loc of locations" value="{{loc.id}}">{{loc.name}}</option>
+                                    </select>
+                                </td>
+                                <td *ngFor="let c of formCells(i).controls; index as j">
+                                    <select [formControl]="formCells(i).controls[j].get('deviceId')" (change)="changeDev(i,j); modifyTable()">
+                                        <option value="0">(device)</option>
+                                        <option *ngFor="let dev of locationDeviceMap[formRows.controls[i].get('locationId').value]" value="{{dev.id}}">{{dev.model}} (#{{dev.id}})</option>
+                                    </select><br>
+                                    <select *ngIf="formColumns.controls[j].get('type').value == 'DATA'" [formControl]="formCells(i).controls[j].get('parameterName')" (change)="changeParam(i,j); modifyTable()">
+                                        <option value="">(parameter)</option>
+                                        <option *ngFor="let par of getParameters(formCells(i).controls[j].get('deviceId').value)" value="{{par}}">{{par | decamel}}</option>
+                                    </select>
+                                    <select *ngIf="formColumns.controls[j].get('type').value== 'COMMAND'" [formControl]="formCells(i).controls[j].get('methodName')" (change)="changeMethod(i,j); modifyTable()">
+                                        <option value="">(method)</option>
+                                        <option *ngFor="let m of getCommands(formCells(i).controls[j].get('deviceId').value)" value="{{m}}">{{m | decamel}}</option>
+                                    </select>
+                                    <input *ngIf="formColumns.controls[j].get('type').value == 'COMMAND'" style="width: 6em;" type="text" [formControl]="formCells(i).controls[j].get('arguments')"
+                                        placeholder="arg1, arg2..." (input)="changeArguments(i, j); modifyTable()">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #tableModal let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Edit table</h4>
+        <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+    </div>
+    <div class="modal-body">
+        <div class="my-2">
+            <label for="name" class="form-label">Name:</label>
+            <input [formControl]="tableForm.get('name')" type="text" id="name"
+                class="form-control" name="name" (input)="updateArray()">
+        </div>
+        <div class="my-2">
+            <label for="description" class="form-label">Description:</label>
+            <input [formControl]="tableForm.get('description')" type="text" id="description"
+                class="form-control" name="description" (input)="updateArray()">
+        </div>
+        <div class="my-2">
+            <label for="displayOrder" class="form-label">Display order:</label>
+            <input [formControl]="tableForm.get('displayOrder')" type="number" id="displayOrder"
+                class="form-control" name="displayOrder" min="0" max="{{tableViews.length-1}}"
+                (input)="updateArray()">
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="modal.dismiss()">Close</button>
+    </div>
+</ng-template>

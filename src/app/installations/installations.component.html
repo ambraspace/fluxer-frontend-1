@@ -1,0 +1,5 @@
+<h2>
+    Installations <span class="fs-6">(<a href="" [routerLink]="[]" (click)="this.showMaps = true">maps</a> | <a href="" [routerLink]="[]" (click)="this.showMaps = false">tables</a>)</span>
+</h2>
+<app-installations-maps *ngIf="this.showMaps"></app-installations-maps>
+<app-installations-tables *ngIf="!this.showMaps"></app-installations-tables>

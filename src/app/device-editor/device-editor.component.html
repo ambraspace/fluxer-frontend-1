@@ -1,0 +1,30 @@
+<div class="modal-header">
+    <h4 class="modal-title" *ngIf="deviceForm.get('submitType').value == 'Add'">Add new device</h4>
+    <h4 class="modal-title" *ngIf="deviceForm.get('submitType').value == 'Update'">Update device</h4>
+    <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+    <input type="hidden" [formControl]="deviceForm.get('id')">
+    <div class="my-2">
+        <label for="deviceType" class="form-label">Choose device type:</label>
+        <select id="deviceType" class="form-select" #selectedDT
+            [formControl]="deviceForm.get('deviceType')" (change)="selectDeviceType(selectedDT.value)" autofocus>
+            <option *ngFor="let key of objectKeys(deviceTypeMap)"
+                value="{{key}}">{{key}}</option>
+        </select>
+    </div>
+    <p class="small m-0 p-0"><span class="fw-bold">Manufacturer:</span> {{selectedDeviceType && selectedDeviceType.manufacturer}}</p>
+    <p class="small m-0 p-0"><span class="fw-bold">Model:</span> {{selectedDeviceType && selectedDeviceType.model}}</p>
+    <p class="small m-0 p-0"><span class="fw-bold">Description:</span> {{selectedDeviceType && selectedDeviceType.description}}</p>
+    <div class="my-2" *ngFor="let c of objectParameters.controls; index as i">
+        <label for="parameter" class="form-label">{{objectKeys(selectedDeviceType.initiationParameters)[i] | decamel}}</label>
+        <input [formControl]="c" type="text" id="parameter" class="form-control">
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="submit" class="btn btn-primary" (click)="addDevice()"
+        *ngIf="deviceForm.get('submitType').value == 'Add'">Add</button>
+    <button type="submit" class="btn btn-primary" (click)="updateDevice()"
+    *ngIf="deviceForm.get('submitType').value == 'Update'">Update</button>
+    <button type="button" class="btn btn-danger" (click)="close()">Close</button>
+</div>

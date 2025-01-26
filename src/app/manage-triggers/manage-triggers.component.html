@@ -1,0 +1,256 @@
+<h2>Triggers</h2>
+<div class="row">
+    <div class="col-9 col-sm-6 col-md-6 col-lg-4 col-xl-4">
+        Choose installation: 
+        <select class="form-select" #selectedInstallation
+            (change)="selectInstallation(selectedInstallation.value)"
+            [disabled]="editingTrigger">
+            <option *ngFor="let installation of installations; index as i" value="{{i}}"
+                [selected]="installation.id == selectedInstallationId()">{{installation.name}}</option>
+        </select>
+    </div>
+</div>
+<div class="row p-3 row-cols-2" *ngIf="installations && installations.length>0">
+    <div class="col-3 border p-3">
+        <h4>Triggers:</h4>
+        <p class="alert alert-info" *ngIf="!triggers || triggers.length==0">
+            There are no triggers. Please add one.
+        </p>
+        <div class="row mb-1 border" *ngFor="let trigger of triggers; index as iTrigger">
+            <div class="col">
+                <p class="m-0 p-0"><a [routerLink]="[]" (click)="selectTrigger(iTrigger)">{{trigger.name}}</a></p>
+                <p class="small m-0 p-0">{{getDetailedDescription(trigger.description)}} (×{{trigger.instructions.length}})</p>
+            </div>
+            <div class="col-1 p-1 text-center">
+                <a [routerLink]="[]" (click)="openTriggerEditor(triggerData, iTrigger)" *ngIf="!editingTrigger || editingTrigger.id == triggers[iTrigger].id">
+                    <fa-icon [icon]="iconEdit"></fa-icon>
+                </a><br>
+                <a [routerLink]="[]" class="text-danger" (click)="deleteTrigger(iTrigger)" *ngIf="!editingTrigger || editingTrigger.id == triggers[iTrigger].id">
+                    <fa-icon [icon]="iconDelete"></fa-icon>
+                </a>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="addTrigger(triggerData)"
+            *ngIf="!editingTrigger">
+            Add trigger
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveTrigger()" *ngIf="editingTrigger">Save trigger</button>
+    </div>
+    <div class="col-9 border p-3">
+        <h4>Instructions:</h4>
+        <p class="alert alert-info" *ngIf="!selectedTrigger">
+            Select trigger to display instructions.
+        </p>
+        <p class="alert alert-info" *ngIf="selectedTrigger && selectedTrigger.instructions.length < 1">
+            There are no instructions! Please add some.
+        </p>
+        <button type="button" class="btn btn-primary" *ngIf="selectedTrigger"
+            (click)="addInstruction()">Add instruction</button>&nbsp;
+            <span *ngIf="selectedTrigger">({{formInstructions.length}} instructions)</span>
+        <div class="table-responsive">
+            <table class="table table-stripped table-sm" *ngIf="selectedTrigger"> 
+                <tbody>
+                    <tr *ngFor="let instruction of selectedTrigger.instructions; index as i">
+                        <td>
+                            <select [formControl]="formInstructions.controls[i].get('deviceId')" (change)="changeDevice(i)">
+                                <option *ngFor="let device of devices" value="{{device.id}}">{{getDeviceDesc(device.id)}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select [formControl]="formInstructions.controls[i].get('methodName')" (change)="changeMethod(i)">
+                                <option *ngFor="let method of getDeviceType(getDevice(formInstructions.controls[i].get('deviceId').value).className).commandProducers" value="{{method}}">
+                                    {{method | decamel}}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" [formControl]="formInstructions.controls[i].get('arguments')"
+                                placeholder="arg1,arg2,arg3..." title="Comma separated arguments" (input)="changeArguments(i)">
+                        </td>
+                        <td>
+                            <a [routerLink]="[]" class="text-danger" (click)="deleteInstruction(i)">
+                                <fa-icon [icon]="iconDelete"></fa-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<ng-template #triggerData let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Edit trigger</h4>
+        <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+    </div>
+    <div class="modal-body">
+        <div class="my-2">
+            <label for="name" class="form-label">Name:</label>
+            <input id="name" class="form-control" placeholder="Trigger name" required
+                [formControl]="triggerForm.get('name')" (input)="updateEditingTrigger()">
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="my-2">
+                    <label for="description" class="form-label">Trigger type:</label>
+                    <select class="form-select" id="description" #selectedTriggerType
+                        [formControl]="triggerForm.get('type')" (change)="updateEditingTrigger()">
+                        <option value="EVERY">Every n minutes</option>
+                        <option value="AT">Daily</option>
+                        <option value="SUN">Relative to the Sun</option>
+                        <option value="WEEKLY">Weekly</option>
+                        <option value="MONTHLY">Monthly</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col" *ngIf="selectedTriggerType.value == 'EVERY'">
+                <div class="my-2">
+                    <label for="minutes" class="form-label">Period [minutes]:</label>
+                    <input id="minutes" class="form-control" type="number" min="1" max="1440"
+                        [formControl]="triggerForm.get('minutes')" (input)="updateEditingTrigger()">
+                </div>
+            </div>
+            <div class="col" *ngIf="selectedTriggerType.value == 'AT'">
+                <div class="my-2">
+                    <label for="time" class="form-label">Time of day:</label>
+                    <input id="time" class="form-control" type="time"
+                        [formControl]="triggerForm.get('time')" (input)="updateEditingTrigger()">
+                </div>
+            </div>
+            <div class="col" *ngIf="selectedTriggerType.value == 'SUN'">
+                <div class="my-2">
+                    <label for="twilight" class="form-label">Twilight:&nbsp;<a href="https://www.timeanddate.com/astronomy/different-types-twilight.html" target="_blank"><fa-icon [icon]="iconExternalLink"></fa-icon></a></label>
+                    <select id="twilight" class="form-select" [formControl]="triggerForm.get('twilight')"
+                        (change)="updateEditingTrigger()">
+                        <option value="">visual</option>
+                        <option value="CIVIL">civil</option>
+                        <option value="NAUTICAL">nautical</option>
+                        <option value="ASTRONOMICAL">astronomical</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col" *ngIf="selectedTriggerType.value == 'WEEKLY'">
+                <div class="row">
+                    <div class="col">
+                        <div class="my-2">
+                            <label class="form-label">Days:</label><br>
+                            <input type="checkbox" title="Monday" [formControl]="triggerForm.get('weekDays').get('mon')" (change)="updateEditingTrigger()">
+                            <input type="checkbox" title="Tuesday" [formControl]="triggerForm.get('weekDays').get('tue')" (change)="updateEditingTrigger()">
+                            <input type="checkbox" title="Wednesday" [formControl]="triggerForm.get('weekDays').get('wed')" (change)="updateEditingTrigger()">
+                            <input type="checkbox" title="Thursday" [formControl]="triggerForm.get('weekDays').get('thu')" (change)="updateEditingTrigger()"><br>
+                            <input type="checkbox" title="Friday" [formControl]="triggerForm.get('weekDays').get('fri')" (change)="updateEditingTrigger()">
+                            <input type="checkbox" title="Saturday" [formControl]="triggerForm.get('weekDays').get('sat')" (change)="updateEditingTrigger()">
+                            <input type="checkbox" title="Sunday" [formControl]="triggerForm.get('weekDays').get('sun')" (change)="updateEditingTrigger()">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="my-2">
+                            <label for="time" class="form-label">Time:</label>
+                            <input id="time" class="form-control" type="time"
+                                [formControl]="triggerForm.get('time')" (input)="updateEditingTrigger()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col" *ngIf="selectedTriggerType.value == 'MONTHLY'">
+                <div class="row">
+                    <div class="col">
+                        <div class="my-2">
+                            <label for="dayOfMonth" class="form-label">Day:</label>
+                            <select class="form-select" id="dayOfMonth"
+                                [formControl]="triggerForm.get('dayOfMonth')" (change)="updateEditingTrigger()">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                                <option value="24">24</option>
+                                <option value="23">25</option>
+                                <option value="26">26</option>
+                                <option value="27">27</option>
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                                <option value="31">31</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="my-2">
+                            <label for="time" class="form-label">Time:</label>
+                            <input id="time" class="form-control" type="time"
+                                [formControl]="triggerForm.get('time')" (input)="updateEditingTrigger()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="selectedTriggerType.value == 'AT' || selectedTriggerType.value == 'EVERY' || selectedTriggerType.value == 'WEEKLY' || selectedTriggerType.value == 'MONTHLY'">
+            <div class="col">
+                <div class="my-2">
+                    <label for="limit" class="form-label">Limited to:&nbsp;<a href="https://www.timeanddate.com/astronomy/different-types-twilight.html" target="_blank"><fa-icon [icon]="iconExternalLink"></fa-icon></a></label>
+                    <select id="limit" class="form-select" [formControl]="triggerForm.get('limit')"
+                        (change)="updateEditingTrigger()" #limit>
+                        <option value="">-</option>
+                        <option value="NIGHT">nighttime</option>
+                        <option value="DAY">daytime</option>
+                        <option value="CIVIL_NIGHT">civil nighttime</option>
+                        <option value="CIVIL_DAY">civil daytime</option>
+                        <option value="NAUTICAL_NIGHT">nautical nighttime</option>
+                        <option value="NAUTICAL_DAY">nautical daytime</option>
+                        <option value="ASTRONOMICAL_NIGHT">astronomical nighttime</option>
+                        <option value="ASTRONOMICAL_DAY">astronomical daytime</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col">
+                <div class="my-2">
+                    <label for="margin" class="form-label">Margin [minutes]:</label>
+                    <input id="margin" class="form-control" type="number" min="-360" max="360"
+                        [formControl]="triggerForm.get('margin')" (input)="updateEditingTrigger()">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="my-2" *ngIf="selectedTriggerType.value == 'SUN'">
+                    <label for="sunPosition" class="form-label">Sun position:</label>
+                    <select id="sunPosition" class="form-select" [formControl]="triggerForm.get('sunPosition')"
+                        (change)="updateEditingTrigger()">
+                        <option value="SUNSET">SUNSET</option>
+                        <option value="MIDNIGHT">MIDNIGHT</option>
+                        <option value="SUNRISE">SUNRISE</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col">
+                <div class="my-2" *ngIf="selectedTriggerType.value == 'SUN'">
+                    <label for="offset" class="form-label">Offset [minutes]:</label>
+                    <input id="offset" class="form-control" type="number" min="-3600" max="3600"
+                        [formControl]="triggerForm.get('offset')" (input)="updateEditingTrigger()">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="modal.dismiss()">Close</button>
+    </div>
+</ng-template>

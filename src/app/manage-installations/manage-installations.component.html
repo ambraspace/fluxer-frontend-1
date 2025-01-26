@@ -1,0 +1,32 @@
+<h2>Installations</h2>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+    <div class="col" *ngFor="let installation of installations">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h4 class="card-title">
+                    {{installation.name}}
+                </h4>
+                <p class="card-text">
+                    {{installation.description}}
+                </p>
+                <a routerLink="/manage/installations/{{installation.id}}" class="btn btn-primary">Edit</a>&nbsp;
+                <button type="button" (click)="delete(installation.id)" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <form (ngSubmit)="addNewInstallation()">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <input class="form-control" type="text" [(ngModel)]="newInstallation.name" name="name" placeholder="New installation name">
+                    </h4>
+                    <p class="card-text">
+                        <input class="form-control" type="text" [(ngModel)]="newInstallation.description" name="description" placeholder="New installation description">
+                    </p>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

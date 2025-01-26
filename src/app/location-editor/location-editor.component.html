@@ -1,0 +1,35 @@
+<div class="modal-header">
+    <h4 class="modal-title" *ngIf="locationForm.get('submitType').value == 'Add'">Add new location</h4>
+    <h4 class="modal-title" *ngIf="locationForm.get('submitType').value == 'Update'">Update location</h4>
+    <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+    <input type="hidden" [formControl]="locationForm.get('id')">
+    <div class="my-2">
+        <label for="name" class="form-label">Name:</label>
+        <input id="name" class="form-control"
+            type="text" placeholder="name" [formControl]="locationForm.get('name')" autofocus>
+    </div>
+    <div class="my-2">
+        <label for="description" class="form-label">Description:</label>
+        <input id="description" class="form-control"
+            type="description" placeholder="description" [formControl]="locationForm.get('description')">
+    </div>
+    <div class="my-2">
+        <label for="longitude" class="form-label">Longitude:</label>&nbsp;<button class="btn btn-primary btn-sm" title="Get coordinates from current user location" (click)="getCurrentCoordinates()">Get</button>
+        <input id="longitude" class="form-control"
+            type="text" placeholder="longitude" [formControl]="locationForm.get('longitude')">
+    </div>
+    <div class="my-2">
+        <label for="latitude" class="form-label">Latitude:</label>
+        <input id="latitude" class="form-control"
+            type="text" placeholder="latitude" [formControl]="locationForm.get('latitude')">
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="submit" class="btn btn-primary" (click)="addLocation()"
+        *ngIf="locationForm.get('submitType').value == 'Add'">Add</button>
+    <button type="submit" class="btn btn-primary" (click)="updateLocation()"
+    *ngIf="locationForm.get('submitType').value == 'Update'">Update</button>
+    <button type="button" class="btn btn-danger" (click)="close()">Close</button>
+</div>
